@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/components/cart/CartContext";
@@ -8,7 +8,16 @@ import { formatClp } from "@/lib/pricing";
 import { secureFetch } from "@/lib/csrf-client";
 
 export default function CartPage() {
-  const { items, totalClp, setQty, remove, clear } = useCart();
+  const { items, totalClp, setQty, remove, clear, sync } = useCart();
+  const [notes, setNotes] = useState<string[]>([]);
+  const synced = useRef(false);
+
+  // Al abrir el carrito, sincroniza precios y stock con el servidor una vez
+  useEffect(() => {
+    if (synced.current || !items.length) return;
+    synced.current = true;
+    sync().then(setNotes).catch(() => {});
+  }, [items.length, sync]);
   const { data: session, status } = useSession();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +58,15 @@ export default function CartPage() {
   return (
     <div className="container-x grid gap-8 py-10 lg:grid-cols-[1fr_380px]">
       <section>
-        <h1 className="font-display text-3xl font-bold">Carrito</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="font-display text-3xl font-bold">Carrito</h1>
+          <button onClick={clear} className="text-sm text-slate-400 hover:text-latias">Vaciar carrito</button>
+        </div>
+        {notes.length > 0 && (
+          <ul className="mt-4 space-y-1 rounded-xl border border-rayquaza-gold/40 bg-rayquaza-gold/10 px-4 py-3 text-sm text-rayquaza-gold" role="status">
+            {notes.map((n) => <li key={n}>⚠ {n}</li>)}
+          </ul>
+        )}
         <ul className="mt-6 divide-y divide-white/10 panel">
           {items.map((i) => (
             <li key={i.productId} className="flex flex-wrap items-center gap-4 p-4">
