@@ -14,7 +14,7 @@ export default async function AdminDashboard() {
   since.setHours(0, 0, 0, 0);
 
   const [orders, critical, visits, clients, recent, pendingSell] = await Promise.all([
-    prisma.order.findMany({ where: { status: { not: "CANCELLED" } }, include: { items: { include: { product: { select: { category: true } } } } } }),
+    prisma.order.findMany({ where: { status: { notIn: ["CANCELLED", "PENDING_PAYMENT"] } }, include: { items: { include: { product: { select: { category: true } } } } } }),
     prisma.product.findMany({ where: { enabled: true, available: true, stock: { lte: 2 } }, orderBy: { stock: "asc" } }),
     prisma.dailyVisit.findMany({ where: { day: { gte: since.toISOString().slice(0, 10) } } }),
     prisma.user.count({ where: { role: "CLIENT" } }),

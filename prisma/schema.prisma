@@ -58,7 +58,7 @@ model Product {
   wishlistBy  WishlistItem[]
 }
 
-// Estados: "PAID" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED"
+// Estados: "PENDING_PAYMENT" | "PAID" | "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED"
 model Order {
   id             String      @id @default(cuid())
   userId         String
@@ -71,6 +71,10 @@ model Order {
   shippingCity   String
   phone          String
   trackingCode   String?
+  paymentProvider String     @default("simulado") // simulado | webpay
+  paymentToken   String?     @unique
+  paymentAuthCode String?
+  paidAt         DateTime?
   createdAt      DateTime    @default(now())
   items          OrderItem[]
 }

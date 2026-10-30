@@ -1,13 +1,42 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCart } from "@/components/cart/CartContext";
 import { formatClp } from "@/lib/pricing";
 import { secureFetch } from "@/lib/csrf-client";
 
+const PAGO_MSG: Record<string, string> = {
+  cancelado: "Cancelaste el pago en Webpay. Tu carrito sigue aquí.",
+  rechazado: "El pago fue rechazado. Puedes intentar con otra tarjeta.",
+  error: "No pudimos verificar el pago. Si se hizo un cargo, contáctanos.",
+};
+
+/** Envía el token a Webpay con un formulario POST (requisito de Transbank). */
+function redirectToWebpay(url: string, token: string) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = url;
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "token_ws";
+  input.value = token;
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+}
+
 export default function CartPage() {
+  return (
+    <Suspense>
+      <CartView />
+    </Suspense>
+  );
+}
+
+function CartView() {
+  const pago = useSearchParams().get("pago");
   const { items, totalClp, setQty, remove, clear, sync } = useCart();
   const [notes, setNotes] = useState<string[]>([]);
   const synced = useRef(false);
@@ -42,6 +71,10 @@ export default function CartPage() {
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setError(data.error ?? "No se pudo procesar el pedido");
+    if (data.redirect) {
+      setBusy(true);
+      return redirectToWebpay(data.redirect.url, data.redirect.token);
+    }
     clear();
     router.push(`/cuenta?pedido=${data.orderId}`);
   }
@@ -62,6 +95,9 @@ export default function CartPage() {
           <h1 className="font-display text-3xl font-bold">Carrito</h1>
           <button onClick={clear} className="text-sm text-slate-400 hover:text-latias">Vaciar carrito</button>
         </div>
+        {pago && PAGO_MSG[pago] && (
+          <p className="mt-4 rounded-xl border border-latias/40 bg-latias/10 px-4 py-3 text-sm text-latias" role="alert">{PAGO_MSG[pago]}</p>
+        )}
         {notes.length > 0 && (
           <ul className="mt-4 space-y-1 rounded-xl border border-rayquaza-gold/40 bg-rayquaza-gold/10 px-4 py-3 text-sm text-rayquaza-gold" role="status">
             {notes.map((n) => <li key={n}>⚠ {n}</li>)}
@@ -102,7 +138,7 @@ export default function CartPage() {
             </div>
             {error && <p className="rounded-lg bg-latias/10 px-3 py-2 text-sm text-latias" role="alert">{error}</p>}
             <button disabled={busy} className="btn-primary w-full py-3 text-base">{busy ? "Procesando…" : "Confirmar y pagar"}</button>
-            <p className="text-center text-xs text-slate-500">Pago simulado para desarrollo. Conecta Webpay/Flow/Mercado Pago en producción.</p>
+            <p className="text-center text-xs text-slate-500">{process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "webpay" ? "Pagarás de forma segura en Webpay (Transbank)." : "Pago simulado para desarrollo."}</p>
           </form>
         )}
       </aside>

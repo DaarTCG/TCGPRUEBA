@@ -15,6 +15,8 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // Expone al cliente qué proveedor de pago está activo (no es un secreto)
+  env: { NEXT_PUBLIC_PAYMENT_PROVIDER: process.env.PAYMENT_PROVIDER ?? "simulado" },
   reactStrictMode: true,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

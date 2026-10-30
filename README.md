@@ -43,6 +43,14 @@ Sin SMTP configurado, los correos (verificación y colecciones) se imprimen en l
 
 **Compramos tus cartas** (`/vende-tus-cartas`). Formulario con nombre, correo, teléfono, descripción, valor estimado en USD o CLP y hasta 6 fotos. Envía un correo al `ADMIN_EMAIL` con las fotos adjuntas usando NodeMailer (compatible con SendGrid vía SMTP).
 
+**Pagos con Webpay Plus (Transbank).** Activa `PAYMENT_PROVIDER="webpay"` en `.env`. Por defecto usa el ambiente de **integración** con las credenciales públicas de prueba (tarjeta VISA `4051 8856 0044 6623`, CVV `123`, RUT `11.111.111-1`, clave `123`). Flujo:
+1. Se crea el pedido en estado *Pago pendiente* y se reserva el stock.
+2. El cliente paga en Webpay.
+3. Al volver, el servidor hace el *commit* y verifica estado, código, monto y orden.
+4. Si el pago se rechaza o se anula, el pedido se cancela y el stock se devuelve.
+
+Para producción: `WEBPAY_ENV="production"` más `WEBPAY_COMMERCE_CODE` y `WEBPAY_API_KEY` de Transbank.
+
 **Imágenes.** Por defecto cada producto muestra una carta "holo" original generada con CSS/SVG. Para usar imágenes oficiales, el admin pega la URL `https://` en **Admin → Productos → Imagen**.
 
 ## Seguridad (OWASP Top 10)
@@ -82,5 +90,5 @@ El workflow de GitHub Actions (`.github/workflows/ci.yml`) corre las pruebas y e
 
 - Cambia `DATABASE_URL` a PostgreSQL (`provider = "postgresql"` en `prisma/schema.prisma`).
 - Para varias instancias, reemplaza el rate limiter en memoria por Redis/Upstash.
-- El checkout actual simula el pago. Conecta Webpay, Flow o Mercado Pago antes de vender.
+- Pasa Webpay a producción con tus credenciales de Transbank (ver sección Pagos).
 - Configura los callbacks OAuth: `https://TU-DOMINIO/api/auth/callback/google` y `/facebook`.

@@ -5,8 +5,8 @@ import { csrfGuard, jsonError, rateGuard } from "@/lib/api";
 import { checkoutSchema } from "@/lib/validation";
 import { sanitizeText } from "@/lib/sanitize";
 import { usdToClp } from "@/lib/pricing";
-import { sendMail } from "@/lib/mail";
-import { orderConfirmationEmail } from "@/lib/emails";
+import { sendOrderConfirmation, cancelPendingOrder } from "@/lib/order-service";
+import { isWebpayEnabled, createTransaction } from "@/lib/webpay";
 
 export async function POST(req: Request) {
   const csrf = csrfGuard(req);
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   const qtyById = new Map<string, number>();
   for (const i of data.items) qtyById.set(i.productId, (qtyById.get(i.productId) ?? 0) + i.quantity);
 
+  const webpay = isWebpayEnabled();
   try {
     const order = await prisma.$transaction(async (tx) => {
       const products = await tx.product.findMany({ where: { id: { in: [...qtyById.keys()] } } });
@@ -54,7 +55,9 @@ export async function POST(req: Request) {
       return tx.order.create({
         data: {
           userId: session.user.id,
-          status: "PAID",
+          status: webpay ? "PENDING_PAYMENT" : "PAID",
+          paymentProvider: webpay ? "webpay" : "simulado",
+          paidAt: webpay ? null : new Date(),
           totalClp,
           costClp,
           shippingName: sanitizeText(data.shippingName, 100),
@@ -63,22 +66,24 @@ export async function POST(req: Request) {
           phone: data.phone,
           items: { create: items },
         },
-        include: { items: { include: { product: { select: { name: true } } } } },
       });
     });
 
-    // Correo de confirmación (si falla, el pedido igual queda creado)
-    if (session.user.email) {
-      const mail = orderConfirmationEmail({
-        id: order.id,
-        customerName: order.shippingName,
-        totalClp: order.totalClp,
-        items: order.items.map((i) => ({ name: i.product.name, quantity: i.quantity, unitPriceClp: i.unitPriceClp })),
-        shippingAddress: order.shippingAddress,
-        shippingCity: order.shippingCity,
-      });
-      await sendMail({ to: session.user.email, ...mail }).catch((e) => console.error("Correo de pedido no enviado:", e));
+    if (webpay) {
+      // El stock queda reservado; si Webpay falla, se libera
+      try {
+        const base = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
+        const tx = await createTransaction({ buyOrder: order.id, sessionId: session.user.id, amount: order.totalClp, returnUrl: `${base}/api/webpay/retorno` });
+        await prisma.order.update({ where: { id: order.id }, data: { paymentToken: tx.token } });
+        return NextResponse.json({ orderId: order.id, redirect: { url: tx.url, token: tx.token } });
+      } catch (e) {
+        console.error("Webpay create:", e);
+        await cancelPendingOrder(order.id);
+        return jsonError("No pudimos conectar con Webpay. Intenta de nuevo.", 502);
+      }
     }
+
+    await sendOrderConfirmation(order.id);
     return NextResponse.json({ orderId: order.id });
   } catch (e) {
     return jsonError(e instanceof Error ? e.message : "No se pudo crear el pedido", 409);
