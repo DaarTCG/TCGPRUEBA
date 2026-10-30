@@ -11,6 +11,11 @@ export default async function AdminPedidos() {
     include: { user: { select: { email: true } }, items: { include: { product: { select: { name: true } } } } },
   });
   return (
+    <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <p className="text-sm text-slate-400">{orders.length} pedidos (máx. 100 en pantalla)</p>
+      <a href="/api/admin/orders/export" className="btn-ghost" download>⬇ Exportar CSV</a>
+    </div>
     <div className="panel overflow-x-auto">
       <table className="w-full min-w-[900px] text-left text-sm">
         <thead className="bg-white/5 text-xs uppercase tracking-wide text-slate-400">
@@ -28,6 +33,7 @@ export default async function AdminPedidos() {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }
