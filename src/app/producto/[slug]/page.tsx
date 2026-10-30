@@ -1,13 +1,35 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { formatClp, formatUsd, usdToClp, USD_TO_CLP } from "@/lib/pricing";
 import CardArt from "@/components/CardArt";
 import ProductActions from "@/components/ProductActions";
+import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
 
 const CAT_LABEL: Record<string, string> = { SINGLE: "Singles", SEALED: "Sellados", GRADED: "Graduadas" };
 const CAT_SLUG: Record<string, string> = { SINGLE: "singles", SEALED: "sellados", GRADED: "graduadas" };
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const p = await prisma.product.findUnique({ where: { slug: params.slug.slice(0, 120) } });
+  if (!p || !p.enabled) return { title: "Producto no encontrado" };
+  const price = p.priceUsd > 0 ? ` · ${formatClp(usdToClp(p.priceUsd))}` : "";
+  const description = `${p.name} (${p.setName}${p.number ? ` ${p.number}` : ""})${price}. ${p.description}`.slice(0, 160);
+  return {
+    title: p.name,
+    description,
+    alternates: { canonical: `${SITE_URL}/producto/${p.slug}` },
+    openGraph: {
+      title: `${p.name} · Hoenn TCG`,
+      description,
+      url: `${SITE_URL}/producto/${p.slug}`,
+      type: "website",
+      ...(p.imageUrl ? { images: [{ url: p.imageUrl }] } : {}),
+    },
+  };
+}
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const p = await prisma.product.findUnique({ where: { slug: params.slug.slice(0, 120) } });
@@ -21,8 +43,30 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const canBuy = p.available && p.stock > 0 && p.priceUsd > 0;
   const priceClp = p.priceUsd > 0 ? usdToClp(p.priceUsd) : 0;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    description: p.description,
+    category: CAT_LABEL[p.category],
+    ...(p.imageUrl ? { image: p.imageUrl } : {}),
+    ...(p.priceUsd > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "CLP",
+            price: priceClp,
+            availability: canBuy ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            url: `${SITE_URL}/producto/${p.slug}`,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="container-x py-10">
+      {/* Datos estructurados para Google; "<" se escapa para que no pueda cerrar el script */}
+      <script type="application/ld+json" nonce={headers().get("x-nonce") ?? undefined} dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <nav className="mb-6 text-sm text-slate-400" aria-label="Migas">
         <Link href="/tienda" className="hover:text-white">Tienda</Link> /{" "}
         <Link href={`/tienda?cat=${CAT_SLUG[p.category]}`} className="hover:text-white">{CAT_LABEL[p.category]}</Link> /{" "}
