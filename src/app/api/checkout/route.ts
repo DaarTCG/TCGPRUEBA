@@ -5,6 +5,8 @@ import { csrfGuard, jsonError } from "@/lib/api";
 import { checkoutSchema } from "@/lib/validation";
 import { sanitizeText } from "@/lib/sanitize";
 import { usdToClp } from "@/lib/pricing";
+import { sendMail } from "@/lib/mail";
+import { orderConfirmationEmail } from "@/lib/emails";
 
 export async function POST(req: Request) {
   const csrf = csrfGuard(req);
@@ -59,8 +61,22 @@ export async function POST(req: Request) {
           phone: data.phone,
           items: { create: items },
         },
+        include: { items: { include: { product: { select: { name: true } } } } },
       });
     });
+
+    // Correo de confirmación (si falla, el pedido igual queda creado)
+    if (session.user.email) {
+      const mail = orderConfirmationEmail({
+        id: order.id,
+        customerName: order.shippingName,
+        totalClp: order.totalClp,
+        items: order.items.map((i) => ({ name: i.product.name, quantity: i.quantity, unitPriceClp: i.unitPriceClp })),
+        shippingAddress: order.shippingAddress,
+        shippingCity: order.shippingCity,
+      });
+      await sendMail({ to: session.user.email, ...mail }).catch((e) => console.error("Correo de pedido no enviado:", e));
+    }
     return NextResponse.json({ orderId: order.id });
   } catch (e) {
     return jsonError(e instanceof Error ? e.message : "No se pudo crear el pedido", 409);
