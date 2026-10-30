@@ -22,3 +22,16 @@ describe("Correo de confirmación de pedido", () => {
     expect(mail.text).toMatch(/Total: \$45\.000/);
   });
 });
+
+import { orderStatusEmail } from "@/lib/emails";
+
+describe("Correo de cambio de estado", () => {
+  it("incluye el tracking escapado al enviar", () => {
+    const m = orderStatusEmail({ id: "abc12345678", customerName: "Misty", status: "SHIPPED", trackingCode: "CL123-456" })!;
+    expect(m.subject).toContain("va en camino");
+    expect(m.text).toContain("CL123-456");
+  });
+  it("no notifica el estado inicial PAID", () => {
+    expect(orderStatusEmail({ id: "x", customerName: "Brock", status: "PAID" })).toBeNull();
+  });
+});

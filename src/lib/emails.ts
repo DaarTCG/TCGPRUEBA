@@ -39,3 +39,27 @@ export function orderConfirmationEmail(o: OrderMail) {
   ].join("\n");
   return { subject, html, text };
 }
+
+const STATUS_COPY: Record<string, { title: string; body: string }> = {
+  PREPARING: { title: "Estamos preparando tu pedido", body: "Tus cartas están siendo protegidas y empacadas." },
+  SHIPPED: { title: "¡Tu pedido va en camino!", body: "Lo entregamos al courier." },
+  DELIVERED: { title: "Tu pedido fue entregado", body: "Esperamos que disfrutes tus cartas. ¡Gracias por comprar en Hoenn TCG!" },
+  CANCELLED: { title: "Tu pedido fue cancelado", body: "Si tienes dudas sobre el reembolso, responde a este correo." },
+};
+
+/** Correo de cambio de estado del pedido (con código de seguimiento si existe). Null si el estado no notifica. */
+export function orderStatusEmail(o: { id: string; customerName: string; status: string; trackingCode?: string | null }) {
+  const copy = STATUS_COPY[o.status];
+  if (!copy) return null;
+  const tracking = o.trackingCode ? `Código de seguimiento: ${o.trackingCode}` : "";
+  return {
+    subject: `${copy.title} · Pedido #${shortId(o.id)}`,
+    text: [`Hola ${o.customerName},`, copy.body, tracking].filter(Boolean).join("\n"),
+    html: wrap(
+      copy.title,
+      `<p>Hola ${escapeHtml(o.customerName)},</p><p>${copy.body}</p>${
+        tracking ? `<p style="font-size:16px">Código de seguimiento: <b style="color:#4C8DFF">${escapeHtml(o.trackingCode!)}</b></p>` : ""
+      }<p>Pedido <b>#${shortId(o.id)}</b></p>`,
+    ),
+  };
+}

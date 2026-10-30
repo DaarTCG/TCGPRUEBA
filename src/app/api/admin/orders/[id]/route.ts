@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { csrfGuard, jsonError } from "@/lib/api";
 import { orderStatusSchema } from "@/lib/validation";
+import { sendMail } from "@/lib/mail";
+import { orderStatusEmail } from "@/lib/emails";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const csrf = csrfGuard(req);
@@ -11,11 +13,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const parsed = orderStatusSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return jsonError(parsed.error.issues[0]?.message ?? "Datos inválidos");
   try {
-    await prisma.order.update({
+    const before = await prisma.order.findUnique({ where: { id: params.id }, select: { status: true } });
+    const order = await prisma.order.update({
       where: { id: params.id },
       data: { status: parsed.data.status, trackingCode: parsed.data.trackingCode || null },
+      include: { user: { select: { email: true } } },
     });
-    return NextResponse.json({ ok: true });
+    // Notifica al cliente solo si el estado cambió
+    let notified = false;
+    if (before && before.status !== order.status) {
+      const mail = orderStatusEmail({ id: order.id, customerName: order.shippingName, status: order.status, trackingCode: order.trackingCode });
+      if (mail) {
+        await sendMail({ to: order.user.email, ...mail }).then(() => (notified = true)).catch((e) => console.error("Correo de estado no enviado:", e));
+      }
+    }
+    return NextResponse.json({ ok: true, notified });
   } catch {
     return jsonError("Pedido no encontrado", 404);
   }
