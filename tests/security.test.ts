@@ -129,3 +129,22 @@ describe("Security headers (Helmet-equivalente)", () => {
     expect(csp).toContain("object-src 'none'");
   });
 });
+
+import { rateGuard } from "@/lib/api";
+import { API_LIMITS } from "@/lib/rate-limit";
+
+describe("Rate limiting de la API", () => {
+  beforeEach(() => resetRateLimit());
+  const req = () => new Request("http://localhost/api/checkout", { method: "POST", headers: { "x-forwarded-for": "9.9.9.9" } });
+
+  it("checkout: bloquea con 429 y Retry-After al superar el límite", () => {
+    for (let i = 0; i < API_LIMITS.checkout.max; i++) expect(rateGuard(req(), "checkout")).toBeNull();
+    const res = rateGuard(req(), "checkout")!;
+    expect(res.status).toBe(429);
+    expect(Number(res.headers.get("Retry-After"))).toBeGreaterThan(0);
+  });
+  it("los grupos tienen contadores independientes", () => {
+    for (let i = 0; i <= API_LIMITS.checkout.max; i++) rateGuard(req(), "checkout");
+    expect(rateGuard(req(), "wishlist")).toBeNull();
+  });
+});
