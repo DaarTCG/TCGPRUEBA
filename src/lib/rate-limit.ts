@@ -7,6 +7,12 @@ type Bucket = number[];
 const store = new Map<string, Bucket>();
 
 export const AUTH_LIMIT = { max: 5, windowMs: 60_000 };
+/** Límites para el resto de la API (anti-abuso / scraping). */
+export const API_LIMITS = {
+  checkout: { max: 10, windowMs: 60_000 },
+  wishlist: { max: 30, windowMs: 60_000 },
+  admin: { max: 60, windowMs: 60_000 },
+} as const;
 
 export function rateLimit(key: string, max = AUTH_LIMIT.max, windowMs = AUTH_LIMIT.windowMs, now = Date.now()) {
   const hits = (store.get(key) ?? []).filter((t) => now - t < windowMs);

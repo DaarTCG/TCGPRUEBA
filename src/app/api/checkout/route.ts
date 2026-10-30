@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { csrfGuard, jsonError } from "@/lib/api";
+import { csrfGuard, jsonError, rateGuard } from "@/lib/api";
 import { checkoutSchema } from "@/lib/validation";
 import { sanitizeText } from "@/lib/sanitize";
 import { usdToClp } from "@/lib/pricing";
@@ -11,6 +11,8 @@ import { orderConfirmationEmail } from "@/lib/emails";
 export async function POST(req: Request) {
   const csrf = csrfGuard(req);
   if (csrf) return csrf;
+  const limited = rateGuard(req, "checkout");
+  if (limited) return limited;
   const session = await getSession();
   if (!session?.user?.id) return jsonError("Debes iniciar sesión", 401);
 

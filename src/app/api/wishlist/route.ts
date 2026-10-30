@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { csrfGuard, jsonError } from "@/lib/api";
+import { csrfGuard, jsonError, rateGuard } from "@/lib/api";
 
 const body = z.object({ productId: z.string().min(1).max(40) });
 
 async function handle(req: Request, add: boolean) {
   const csrf = csrfGuard(req);
   if (csrf) return csrf;
+  const limited = rateGuard(req, "wishlist");
+  if (limited) return limited;
   const session = await getSession();
   if (!session?.user?.id) return jsonError("Debes iniciar sesión", 401);
   const parsed = body.safeParse(await req.json().catch(() => null));
