@@ -11,6 +11,8 @@ type CartCtx = {
   setQty: (productId: string, qty: number) => void;
   remove: (productId: string) => void;
   clear: () => void;
+  /** Actualiza precios y stock desde el servidor. Devuelve los avisos de cambios. */
+  sync: () => Promise<string[]>;
 };
 
 const Ctx = createContext<CartCtx | null>(null);
@@ -57,6 +59,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const remove = useCallback((productId: string) => setItems((p) => p.filter((i) => i.productId !== productId)), []);
   const clear = useCallback(() => setItems([]), []);
 
+  const sync = useCallback(async () => {
+    const current = items;
+    if (!current.length) return [];
+    const res = await fetch(`/api/cart?ids=${current.map((i) => i.productId).join(",")}`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const { products } = (await res.json()) as { products: { id: string; priceClp: number; stock: number; purchasable: boolean }[] };
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const notes: string[] = [];
+    const next: CartItem[] = [];
+    for (const it of current) {
+      const p = byId.get(it.productId);
+      if (!p || !p.purchasable) {
+        notes.push(`${it.name} ya no está disponible y se quitó del carrito.`);
+        continue;
+      }
+      let quantity = it.quantity;
+      if (p.stock < quantity) {
+        quantity = p.stock;
+        notes.push(`${it.name}: solo quedan ${p.stock}, ajustamos la cantidad.`);
+      }
+      if (p.priceClp !== it.priceClp) notes.push(`${it.name} cambió de precio.`);
+      next.push({ ...it, priceClp: p.priceClp, maxStock: p.stock, quantity });
+    }
+    setItems(next);
+    return notes;
+  }, [items]);
+
   const value = useMemo(
     () => ({
       items,
@@ -66,8 +95,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setQty,
       remove,
       clear,
+      sync,
     }),
-    [items, add, setQty, remove, clear],
+    [items, add, setQty, remove, clear, sync],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
