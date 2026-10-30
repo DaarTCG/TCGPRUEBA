@@ -1,0 +1,68 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+import { csrfGuard, jsonError } from "@/lib/api";
+import { checkoutSchema } from "@/lib/validation";
+import { sanitizeText } from "@/lib/sanitize";
+import { usdToClp } from "@/lib/pricing";
+
+export async function POST(req: Request) {
+  const csrf = csrfGuard(req);
+  if (csrf) return csrf;
+  const session = await getSession();
+  if (!session?.user?.id) return jsonError("Debes iniciar sesión", 401);
+
+  const parsed = checkoutSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) return jsonError(parsed.error.issues[0]?.message ?? "Datos inválidos");
+  const data = parsed.data;
+
+  // Unificar cantidades por producto
+  const qtyById = new Map<string, number>();
+  for (const i of data.items) qtyById.set(i.productId, (qtyById.get(i.productId) ?? 0) + i.quantity);
+
+  try {
+    const order = await prisma.$transaction(async (tx) => {
+      const products = await tx.product.findMany({ where: { id: { in: [...qtyById.keys()] } } });
+      if (products.length !== qtyById.size) throw new Error("Un producto ya no existe");
+
+      let totalClp = 0;
+      let costClp = 0;
+      const items = products.map((p) => {
+        const qty = qtyById.get(p.id)!;
+        if (!p.enabled || !p.available || p.priceUsd <= 0) throw new Error(`${p.name} no está disponible`);
+        if (p.stock < qty) throw new Error(`Stock insuficiente para ${p.name}`);
+        // Precio SIEMPRE desde la BD (nunca desde el cliente)
+        const unit = usdToClp(p.priceUsd);
+        const unitCost = usdToClp(p.costUsd);
+        totalClp += unit * qty;
+        costClp += unitCost * qty;
+        return { productId: p.id, quantity: qty, unitPriceClp: unit, unitCostClp: unitCost };
+      });
+
+      for (const it of items) {
+        const r = await tx.product.updateMany({
+          where: { id: it.productId, stock: { gte: it.quantity } },
+          data: { stock: { decrement: it.quantity } },
+        });
+        if (r.count !== 1) throw new Error("Stock insuficiente");
+      }
+
+      return tx.order.create({
+        data: {
+          userId: session.user.id,
+          status: "PAID",
+          totalClp,
+          costClp,
+          shippingName: sanitizeText(data.shippingName, 100),
+          shippingAddress: sanitizeText(data.shippingAddress, 200),
+          shippingCity: sanitizeText(data.shippingCity, 80),
+          phone: data.phone,
+          items: { create: items },
+        },
+      });
+    });
+    return NextResponse.json({ orderId: order.id });
+  } catch (e) {
+    return jsonError(e instanceof Error ? e.message : "No se pudo crear el pedido", 409);
+  }
+}

@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+html { background: #0F172A; }
+body {
+  @apply bg-night text-slate-100 antialiased;
+  background-image:
+    radial-gradient(900px 500px at 10% -10%, rgba(0, 82, 212, 0.22), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(255, 42, 84, 0.14), transparent 60%),
+    radial-gradient(900px 600px at 50% 120%, rgba(0, 200, 83, 0.12), transparent 60%);
+  background-attachment: fixed;
+}
+
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-7xl px-4 sm:px-6; }
+  .panel { @apply rounded-2xl border border-white/10 bg-night-800/70 backdrop-blur; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-latios text-white shadow-neon-blue hover:bg-latios-light focus-visible:outline-latios-glow; }
+  .btn-secondary { @apply btn bg-latias text-white shadow-neon-red hover:bg-latias-light focus-visible:outline-latias; }
+  .btn-ghost { @apply btn border border-white/15 bg-white/5 text-slate-100 hover:bg-white/10 focus-visible:outline-white; }
+  .input { @apply w-full rounded-xl border border-white/10 bg-night-900/80 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-latios-glow focus:outline-none focus:ring-2 focus:ring-latios/40; }
+  .label { @apply mb-1.5 block text-sm font-medium text-slate-300; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .price { @apply font-display font-bold text-rayquaza; }
+  .holo-text {
+    background: linear-gradient(90deg, #4C8DFF, #FF2A54, #00C853, #FFD700, #4C8DFF);
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    @apply animate-holo;
+  }
+  .holo-sheen {
+    background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,.18) 35%, rgba(76,141,255,.18) 45%, rgba(255,42,84,.16) 55%, rgba(0,200,83,.16) 65%, transparent 80%);
+    background-size: 250% 100%;
+    @apply animate-holo;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-text, .holo-sheen { animation: none; }
+}
