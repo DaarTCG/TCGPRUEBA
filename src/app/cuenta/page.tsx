@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatClp, usdToClp } from "@/lib/pricing";
 import { ORDER_COLOR, ORDER_LABEL, ORDER_STEPS } from "@/lib/orders";
+import ClearCart from "@/components/cart/ClearCart";
 
 export const metadata = { title: "Mi cuenta" };
 
@@ -25,7 +26,10 @@ export default async function Cuenta({ searchParams }: { searchParams: { pedido?
   return (
     <div className="container-x py-10">
       {searchParams.pedido && (
-        <p className="mb-6 rounded-xl bg-rayquaza/10 px-4 py-3 text-rayquaza" role="status">✓ ¡Pedido confirmado! Puedes seguir su estado aquí abajo.</p>
+        <>
+          <ClearCart />
+          <p className="mb-6 rounded-xl bg-rayquaza/10 px-4 py-3 text-rayquaza" role="status">✓ ¡Pedido confirmado! Puedes seguir su estado aquí abajo.</p>
+        </>
       )}
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
         <aside className="panel h-fit p-6">

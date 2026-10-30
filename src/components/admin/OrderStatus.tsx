@@ -22,7 +22,7 @@ export default function OrderStatus({ id, status, trackingCode }: { id: string; 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <select aria-label="Estado" value={s} onChange={(e) => setS(e.target.value)} className="input w-36 py-1.5">
-        {Object.entries(ORDER_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        {Object.entries(ORDER_LABEL).filter(([k]) => k !== "PENDING_PAYMENT" || s === "PENDING_PAYMENT").map(([k, v]) => <option key={k} value={k} disabled={k === "PENDING_PAYMENT"}>{v}</option>)}
       </select>
       <input aria-label="Código de seguimiento" value={t} onChange={(e) => setT(e.target.value)} placeholder="Tracking" maxLength={40} className="input w-32 py-1.5" />
       <button onClick={save} className="btn-primary py-1.5">Guardar</button>
