@@ -1,13 +1,25 @@
 /* eslint-disable @next/next/no-img-element */
 import { prisma } from "@/lib/prisma";
 import { formatClp, formatUsd } from "@/lib/pricing";
+import SellStatus, { SELL_LABEL } from "@/components/admin/SellStatus";
 
 export const metadata = { title: "Colecciones · Admin" };
 
-export default async function AdminColecciones() {
-  const reqs = await prisma.sellRequest.findMany({ orderBy: { createdAt: "desc" }, take: 100 });
-  if (!reqs.length) return <p className="panel p-8 text-center text-slate-400">Aún no llegan solicitudes de compra de colecciones.</p>;
+export default async function AdminColecciones({ searchParams }: { searchParams: { estado?: string } }) {
+  const estado = searchParams.estado && SELL_LABEL[searchParams.estado] ? searchParams.estado : undefined;
+  const reqs = await prisma.sellRequest.findMany({ where: estado ? { status: estado } : {}, orderBy: { createdAt: "desc" }, take: 100 });
+  const filters = (
+    <nav className="mb-4 flex flex-wrap gap-2" aria-label="Filtrar por estado">
+      <a href="/admin/colecciones" className={`badge px-3 py-1.5 text-sm ${!estado ? "bg-latios text-white" : "bg-white/5 text-slate-300"}`}>Todas</a>
+      {Object.entries(SELL_LABEL).map(([k, v]) => (
+        <a key={k} href={`/admin/colecciones?estado=${k}`} className={`badge px-3 py-1.5 text-sm ${estado === k ? "bg-latios text-white" : "bg-white/5 text-slate-300"}`}>{v}</a>
+      ))}
+    </nav>
+  );
+  if (!reqs.length) return <>{filters}<p className="panel p-8 text-center text-slate-400">No hay solicitudes{estado ? " con ese estado" : " de compra de colecciones todavía"}.</p></>;
   return (
+    <>
+    {filters}
     <ul className="grid gap-4 lg:grid-cols-2">
       {reqs.map((r) => {
         const files: string[] = JSON.parse(r.files || "[]");
@@ -31,10 +43,14 @@ export default async function AdminColecciones() {
                 ))}
               </div>
             )}
-            <p className="mt-3 text-xs text-slate-500">{r.createdAt.toLocaleString("es-CL")}</p>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <SellStatus id={r.id} status={r.status} />
+              <p className="text-xs text-slate-500">{r.createdAt.toLocaleString("es-CL")}</p>
+            </div>
           </li>
         );
       })}
     </ul>
+    </>
   );
 }
