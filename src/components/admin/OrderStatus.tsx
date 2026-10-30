@@ -6,7 +6,7 @@ import { ORDER_LABEL } from "@/lib/orders";
 export default function OrderStatus({ id, status, trackingCode }: { id: string; status: string; trackingCode: string | null }) {
   const [s, setS] = useState(status);
   const [t, setT] = useState(trackingCode ?? "");
-  const [state, setState] = useState<"" | "saving" | "ok" | "err">("");
+  const [state, setState] = useState<"" | "saving" | "ok" | "notified" | "err">("");
 
   async function save() {
     setState("saving");
@@ -15,7 +15,8 @@ export default function OrderStatus({ id, status, trackingCode }: { id: string; 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: s, trackingCode: t }),
     });
-    setState(res.ok ? "ok" : "err");
+    const data = await res.json().catch(() => ({}));
+    setState(!res.ok ? "err" : data.notified ? "notified" : "ok");
   }
 
   return (
@@ -25,7 +26,7 @@ export default function OrderStatus({ id, status, trackingCode }: { id: string; 
       </select>
       <input aria-label="Código de seguimiento" value={t} onChange={(e) => setT(e.target.value)} placeholder="Tracking" maxLength={40} className="input w-32 py-1.5" />
       <button onClick={save} className="btn-primary py-1.5">Guardar</button>
-      <span className="text-xs" aria-live="polite">{state === "ok" ? "✓" : state === "err" ? "✗ Error" : state === "saving" ? "…" : ""}</span>
+      <span className="text-xs" aria-live="polite">{state === "notified" ? "✓ Cliente notificado" : state === "ok" ? "✓" : state === "err" ? "✗ Error" : state === "saving" ? "…" : ""}</span>
     </div>
   );
 }
