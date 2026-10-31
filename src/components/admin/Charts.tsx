@@ -11,10 +11,23 @@ const tooltipStyle = {
   itemStyle: { color: "#E2E8F0" },
 };
 
+/** Tabla oculta visualmente con los mismos datos, para lectores de pantalla. */
+function DataTable({ caption, label, rows }: { caption: string; label: string; rows: [string, number][] }) {
+  return (
+    <table className="sr-only">
+      <caption>{caption}</caption>
+      <thead><tr><th scope="col">{label}</th><th scope="col">Ventas (CLP)</th></tr></thead>
+      <tbody>{rows.map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{clp(v)}</td></tr>)}</tbody>
+    </table>
+  );
+}
+
 export function SalesChart({ data }: { data: { day: string; ventas: number }[] }) {
   return (
+    <>
+    <DataTable caption="Ventas diarias de los últimos 14 días" label="Día" rows={data.map((d) => [d.day, d.ventas])} />
     <ResponsiveContainer width="100%" height={260}>
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <AreaChart accessibilityLayer data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="fillSales" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#4C8DFF" stopOpacity={0.35} />
@@ -24,23 +37,27 @@ export function SalesChart({ data }: { data: { day: string; ventas: number }[] }
         <CartesianGrid vertical={false} stroke="rgba(255,255,255,.06)" />
         <XAxis dataKey="day" {...axis} />
         <YAxis {...axis} width={56} tickFormatter={compact} />
-        <Tooltip {...tooltipStyle} formatter={(v: number) => [clp(v), "Ventas"]} cursor={{ stroke: "rgba(255,255,255,.25)" }} />
+        <Tooltip {...tooltipStyle} formatter={(v) => [clp(Number(v ?? 0)), "Ventas"]} cursor={{ stroke: "rgba(255,255,255,.25)" }} />
         <Area type="monotone" dataKey="ventas" stroke="#4C8DFF" strokeWidth={2} fill="url(#fillSales)" activeDot={{ r: 5, stroke: "#0B1120", strokeWidth: 2 }} />
       </AreaChart>
     </ResponsiveContainer>
+    </>
   );
 }
 
 export function CategoryChart({ data }: { data: { categoria: string; ventas: number }[] }) {
   return (
+    <>
+    <DataTable caption="Ventas por categoría" label="Categoría" rows={data.map((d) => [d.categoria, d.ventas])} />
     <ResponsiveContainer width="100%" height={260}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barCategoryGap="30%">
+      <BarChart accessibilityLayer data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barCategoryGap="30%">
         <CartesianGrid vertical={false} stroke="rgba(255,255,255,.06)" />
         <XAxis dataKey="categoria" {...axis} />
         <YAxis {...axis} width={56} tickFormatter={compact} />
-        <Tooltip {...tooltipStyle} formatter={(v: number) => [clp(v), "Ventas"]} cursor={{ fill: "rgba(255,255,255,.04)" }} />
+        <Tooltip {...tooltipStyle} formatter={(v) => [clp(Number(v ?? 0)), "Ventas"]} cursor={{ fill: "rgba(255,255,255,.04)" }} />
         <Bar dataKey="ventas" fill="#00C853" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
+    </>
   );
 }
