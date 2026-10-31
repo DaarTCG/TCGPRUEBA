@@ -1,8 +1,8 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 
 type Attachment = { filename: string; content: Buffer; contentType: string };
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: Transporter | null = null;
 function getTransport() {
   if (!process.env.SMTP_HOST) return null;
   transporter ??= nodemailer.createTransport({
