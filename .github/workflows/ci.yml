@@ -32,10 +32,9 @@ jobs:
         run: npm run typecheck
       - name: Pruebas
         run: npm test
-      # Informativa: Next 14 / next-auth 4 tienen avisos que se resuelven migrando a Next 16
+      # Bloqueante: el build falla si aparece una vulnerabilidad alta o crítica en producción
       - name: Auditoría de dependencias
         run: npm audit --omit=dev --audit-level=high
-        continue-on-error: true
       - name: Build
         run: |
           npx prisma db push --skip-generate
