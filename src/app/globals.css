@@ -130,7 +130,7 @@
   @apply animate-holo;
 }
 
-@layer utilities {
+@layer base {
   :root {
     color-scheme: dark;
   }
