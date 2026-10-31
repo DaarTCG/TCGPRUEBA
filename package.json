@@ -20,12 +20,12 @@
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "next": "^14.2.35",
-    "next-auth": "^4.24.11",
+    "next-auth": "^4.24.15",
     "nodemailer": "^6.9.16",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.13.3",
-    "sanitize-html": "^2.13.1",
+    "sanitize-html": "^2.18.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -47,5 +47,10 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "overrides": {
+    "next-auth": {
+      "nodemailer": "$nodemailer"
+    }
   }
 }
