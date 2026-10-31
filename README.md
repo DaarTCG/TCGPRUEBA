@@ -6,6 +6,8 @@ Tienda online de Pokémon TCG con estética inspirada en el trío legendario de 
 
 ## Puesta en marcha
 
+Requiere **Node.js 22 LTS** o superior (ver `.nvmrc`; con nvm: `nvm use`).
+
 ```bash
 npm install
 cp .env.example .env        # completa NEXTAUTH_SECRET (openssl rand -base64 32)
