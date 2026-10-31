@@ -2,7 +2,7 @@
 
 Tienda online de Pokémon TCG con estética inspirada en el trío legendario de Hoenn (**Latios · Latias · Rayquaza**). Incluye catálogo con precios autocalculados, autenticación con roles, panel de administración en tiempo real, módulo "Compramos tus cartas" y una capa de seguridad con pruebas automatizadas.
 
-**Stack:** Next.js 14 (App Router) · React 18 · TypeScript · Tailwind CSS · Prisma (SQLite) · NextAuth (OAuth2 + JWT) · NodeMailer · Recharts · Zod · Vitest
+**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS · Prisma (SQLite) · NextAuth (OAuth2 + JWT) · NodeMailer 10 · Recharts · Zod 4 · Vitest · ESLint 9
 
 ## Puesta en marcha
 
@@ -64,7 +64,9 @@ Para producción: `WEBPAY_ENV="production"` más `WEBPAY_COMMERCE_CODE` y `WEBPA
 | CSRF | Double-submit cookie + verificación de `Origin` en checkout, admin, wishlist, registro y colecciones; NextAuth trae su propio CSRF |
 | Fuerza bruta | Rate limit de **5 intentos/minuto** por IP y por cuenta en login y registro |
 | Contraseñas | bcrypt con **cost factor 12**, política de contraseña robusta y comparación en tiempo constante |
-| Headers | CSP con nonce por request, HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy (equivalente a Helmet) |
+| Dependencias | `npm audit` sin vulnerabilidades, bloqueante en CI; Dependabot semanal |
+| Correo | SMTP con STARTTLS obligatorio y TLS ≥ 1.2 |
+| Headers | CSP con nonce por request (en `src/proxy.ts`), HSTS, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy (equivalente a Helmet) |
 | Control de acceso | Middleware por rol + revalidación del rol contra la BD en cada acción admin |
 | Subidas | Validación por magic bytes (JPG/PNG/WEBP), máx. 5 MB, nombres generados por el servidor, guardadas fuera de `/public` y servidas solo al admin |
 | Lógica de negocio | Precios y stock recalculados en el servidor dentro de una transacción; el cliente nunca define el precio |
@@ -76,7 +78,7 @@ Para producción: `WEBPAY_ENV="production"` más `WEBPAY_COMMERCE_CODE` y `WEBPA
 npm test
 ```
 
-36 pruebas en `tests/` cubren:
+59 pruebas en `tests/` cubren:
 - precios
 - rate limiting (el 6º intento se bloquea)
 - payloads XSS
