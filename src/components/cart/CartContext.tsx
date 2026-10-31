@@ -100,7 +100,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [items, add, setQty, remove, clear, sync],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <Ctx value={value}>{children}</Ctx>;
 }
 
 export function useCart() {
