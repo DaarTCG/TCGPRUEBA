@@ -34,7 +34,7 @@ export default async function Cuenta(props: { searchParams: Promise<{ pedido?: s
       )}
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
         <aside className="panel h-fit p-6">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-latios to-latias font-display text-xl font-bold">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-linear-to-br from-latios to-latias font-display text-xl font-bold">
             {(user.name ?? user.email)[0].toUpperCase()}
           </div>
           <h1 className="mt-4 font-display text-xl font-bold">{user.name ?? "Mi perfil"}</h1>
