@@ -122,7 +122,7 @@ export default async function AdminDashboard() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {recent.map((o) => (
-                <tr key={o.id} className="hover:bg-white/[.03]">
+                <tr key={o.id} className="hover:bg-white/3">
                   <td className="px-5 py-2.5 font-mono text-xs">#{o.id.slice(-8).toUpperCase()}</td>
                   <td className="px-5 py-2.5">{o.user.name ?? o.user.email}<span className="block text-xs text-slate-500">{o.user.email}</span></td>
                   <td className="px-5 py-2.5 text-slate-400">{o.createdAt.toLocaleDateString("es-CL")}</td>

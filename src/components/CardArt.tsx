@@ -29,14 +29,14 @@ export default function CardArt({ name, category, theme, isSecret, imageUrl, set
 
   if (imageUrl) {
     return (
-      <div className={`relative overflow-hidden rounded-xl bg-night-900 ${frame} ${sealed ? "aspect-square" : "aspect-[63/88]"}`}>
+      <div className={`relative overflow-hidden rounded-xl bg-night-900 ${frame} ${sealed ? "aspect-square" : "aspect-63/88"}`}>
         <img src={imageUrl} alt={name} className="h-full w-full object-contain" loading="lazy" referrerPolicy="no-referrer" />
       </div>
     );
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${themes[theme] ?? themes.latios} ${frame} ${sealed ? "aspect-square" : "aspect-[63/88]"}`} role="img" aria-label={name}>
+    <div className={`relative overflow-hidden rounded-xl bg-linear-to-br ${themes[theme] ?? themes.latios} ${frame} ${sealed ? "aspect-square" : "aspect-63/88"}`} role="img" aria-label={name}>
       <div className="holo-sheen absolute inset-0 mix-blend-screen" />
       {/* Siluetas abstractas */}
       <svg viewBox="0 0 100 140" className="absolute inset-0 h-full w-full opacity-60" aria-hidden="true">
@@ -63,7 +63,7 @@ export default function CardArt({ name, category, theme, isSecret, imageUrl, set
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent p-3">
         <p className={`font-display font-bold leading-tight text-white ${size === "lg" ? "text-xl" : "text-sm"}`}>{name}</p>
         <p className="mt-0.5 text-[11px] text-white/70">
           {setName}

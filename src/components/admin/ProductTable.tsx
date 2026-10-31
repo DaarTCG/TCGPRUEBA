@@ -33,7 +33,7 @@ export default function ProductTable({ initial }: { initial: Row[] }) {
 
   return (
     <div className="panel overflow-hidden">
-      <p className="min-h-[2.25rem] px-5 pt-3 text-sm text-slate-300" aria-live="polite">{msg}</p>
+      <p className="min-h-9 px-5 pt-3 text-sm text-slate-300" aria-live="polite">{msg}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[900px] text-left text-sm">
           <thead className="bg-white/5 text-xs uppercase tracking-wide text-slate-400">

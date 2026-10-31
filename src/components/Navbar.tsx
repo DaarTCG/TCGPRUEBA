@@ -19,7 +19,7 @@ export default function Navbar() {
   const isAdmin = session?.user?.role === "ADMIN";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-night/80 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-night/80 backdrop-blur-sm">
       <div className="container-x flex h-16 items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2.5 font-display text-lg font-bold">
           <Logo />

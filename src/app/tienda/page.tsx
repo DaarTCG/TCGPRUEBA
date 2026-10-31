@@ -40,10 +40,10 @@ export default async function Tienda(props: { searchParams: Promise<{ cat?: stri
         {Object.entries(CATEGORY_SLUGS).map(([slug, c]) => (
           <Link key={slug} href={`/tienda?cat=${slug}`} className={`badge px-3 py-1.5 text-sm ${cat === slug ? "bg-latios text-white" : "bg-white/5 text-slate-300"}`}>{c.label}</Link>
         ))}
-        <form className="ml-auto flex w-full gap-2 sm:w-auto" action="/tienda">
+        <form className="ml-auto flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap" action="/tienda">
           {cat && <input type="hidden" name="cat" value={cat} />}
-          <input name="q" defaultValue={q} placeholder="Buscar carta o set…" className="input sm:w-56" aria-label="Buscar" />
-          <select name="orden" defaultValue={orden} className="input w-auto" aria-label="Ordenar por">
+          <input name="q" defaultValue={q} placeholder="Buscar carta o set…" className="input basis-full sm:basis-auto sm:w-56" aria-label="Buscar" />
+          <select name="orden" defaultValue={orden} className="input min-w-0 flex-1 sm:w-auto sm:flex-none" aria-label="Ordenar por">
             {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
           </select>
           <button className="btn-ghost">Aplicar</button>
