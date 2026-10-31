@@ -12,7 +12,10 @@ import { SITE_URL } from "@/lib/site";
 const CAT_LABEL: Record<string, string> = { SINGLE: "Singles", SEALED: "Sellados", GRADED: "Graduadas" };
 const CAT_SLUG: Record<string, string> = { SINGLE: "singles", SEALED: "sellados", GRADED: "graduadas" };
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const p = await prisma.product.findUnique({ where: { slug: params.slug.slice(0, 120) } });
   if (!p || !p.enabled) return { title: "Producto no encontrado" };
   const price = p.priceUsd > 0 ? ` · ${formatClp(usdToClp(p.priceUsd))}` : "";
@@ -31,7 +34,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
+export default async function ProductPage(props: Props) {
+  const params = await props.params;
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const p = await prisma.product.findUnique({ where: { slug: params.slug.slice(0, 120) } });
   if (!p || !p.enabled) notFound();
   await prisma.product.update({ where: { id: p.id }, data: { views: { increment: 1 } } });
@@ -66,7 +71,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   return (
     <div className="container-x py-10">
       {/* Datos estructurados para Google; "<" se escapa para que no pueda cerrar el script */}
-      <script type="application/ld+json" nonce={headers().get("x-nonce") ?? undefined} dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <nav className="mb-6 text-sm text-slate-400" aria-label="Migas">
         <Link href="/tienda" className="hover:text-white">Tienda</Link> /{" "}
         <Link href={`/tienda?cat=${CAT_SLUG[p.category]}`} className="hover:text-white">{CAT_LABEL[p.category]}</Link> /{" "}

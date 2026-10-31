@@ -6,7 +6,8 @@ import { orderStatusSchema } from "@/lib/validation";
 import { sendMail } from "@/lib/mail";
 import { orderStatusEmail } from "@/lib/emails";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const csrf = csrfGuard(req);
   if (csrf) return csrf;
   const limited = rateGuard(req, "admin");

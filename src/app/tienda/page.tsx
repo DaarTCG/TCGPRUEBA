@@ -14,7 +14,8 @@ const SORTS: Record<string, { label: string; orderBy: Record<string, "asc" | "de
   recientes: { label: "Más recientes", orderBy: { createdAt: "desc" } },
 };
 
-export default async function Tienda({ searchParams }: { searchParams: { cat?: string; q?: string; orden?: string } }) {
+export default async function Tienda(props: { searchParams: Promise<{ cat?: string; q?: string; orden?: string }> }) {
+  const searchParams = await props.searchParams;
   await trackVisit();
   const cat = searchParams.cat && CATEGORY_SLUGS[searchParams.cat] ? searchParams.cat : undefined;
   const q = (searchParams.q ?? "").slice(0, 60);

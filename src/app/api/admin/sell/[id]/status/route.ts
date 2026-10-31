@@ -6,7 +6,8 @@ import { csrfGuard, jsonError, rateGuard } from "@/lib/api";
 
 const schema = z.object({ status: z.enum(["NEW", "CONTACTED", "CLOSED"]) });
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const csrf = csrfGuard(req);
   if (csrf) return csrf;
   const limited = rateGuard(req, "admin");

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { consumeVerification } from "@/lib/verification";
 
-export default async function Verificar({ searchParams }: { searchParams: { token?: string } }) {
+export default async function Verificar(props: { searchParams: Promise<{ token?: string }> }) {
+  const searchParams = await props.searchParams;
   const ok = await consumeVerification(String(searchParams.token ?? ""));
   if (ok) redirect("/login?verified=1");
   return (
