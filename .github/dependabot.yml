@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Dependencias npm: revisión semanal; parches y menores agrupados en un solo PR
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Santiago
+    open-pull-requests-limit: 5
+    groups:
+      menores-y-parches:
+        update-types: [minor, patch]
+    labels: [dependencias]
+
+  # Acciones de GitHub usadas en el CI
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [ci]
