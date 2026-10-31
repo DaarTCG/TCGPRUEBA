@@ -8,7 +8,8 @@ import ClearCart from "@/components/cart/ClearCart";
 
 export const metadata = { title: "Mi cuenta" };
 
-export default async function Cuenta({ searchParams }: { searchParams: { pedido?: string } }) {
+export default async function Cuenta(props: { searchParams: Promise<{ pedido?: string }> }) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
   if (!session?.user?.id) redirect("/login?callbackUrl=/cuenta");
 

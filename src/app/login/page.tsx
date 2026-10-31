@@ -10,7 +10,8 @@ function safeCallback(url?: string) {
   return url && url.startsWith("/") && !url.startsWith("//") ? url : "/cuenta";
 }
 
-export default function LoginPage({ searchParams }: { searchParams: { callbackUrl?: string; error?: string; verified?: string } }) {
+export default async function LoginPage(props: { searchParams: Promise<{ callbackUrl?: string; error?: string; verified?: string }> }) {
+  const searchParams = await props.searchParams;
   const cb = safeCallback(searchParams.callbackUrl);
   return (
     <div className="container-x flex justify-center py-14">

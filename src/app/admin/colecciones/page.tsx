@@ -5,7 +5,8 @@ import SellStatus, { SELL_LABEL } from "@/components/admin/SellStatus";
 
 export const metadata = { title: "Colecciones · Admin" };
 
-export default async function AdminColecciones({ searchParams }: { searchParams: { estado?: string } }) {
+export default async function AdminColecciones(props: { searchParams: Promise<{ estado?: string }> }) {
+  const searchParams = await props.searchParams;
   const estado = searchParams.estado && SELL_LABEL[searchParams.estado] ? searchParams.estado : undefined;
   const reqs = await prisma.sellRequest.findMany({ where: estado ? { status: estado } : {}, orderBy: { createdAt: "desc" }, take: 100 });
   const filters = (

@@ -4,7 +4,8 @@ import { requireAdmin } from "@/lib/auth";
 import { csrfGuard, jsonError, rateGuard } from "@/lib/api";
 import { productUpdateSchema } from "@/lib/validation";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const csrf = csrfGuard(req);
   if (csrf) return csrf;
   const limited = rateGuard(req, "admin");
