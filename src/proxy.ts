@@ -9,7 +9,7 @@ function randomToken(bytes = 32) {
   return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // ── Control de acceso por rol ──
