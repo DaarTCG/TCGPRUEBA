@@ -2,6 +2,20 @@
 
 Todos los cambios relevantes de Hoenn TCG. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [1.2.0] - 2026-10-31
+
+### Cambiado
+- **Next.js 14 → 16.4** y **React 18 → 19**: APIs de request asíncronas (#22), `middleware.ts` → `proxy.ts` y Turbopack (#24).
+- **ESLint 9** con flat config nativa de `eslint-config-next` 16 y reglas de TypeScript (#23, #24).
+- **Zod 4** con `z.email()` y `z.url()` restringido a https (#19).
+- **Nodemailer 10** (#20) y **Node.js 22 LTS** (#21).
+- El carrito usa `useSyncExternalStore` y se sincroniza entre pestañas (#24).
+
+### Seguridad
+- Corregidos todos los avisos de `npm audit` (críticos en Next.js y next-auth; altos en Zod, nodemailer y postcss): **0 vulnerabilidades** (#18–#24).
+- SMTP con STARTTLS obligatorio y TLS ≥ 1.2 (#20).
+- Auditoría bloqueante en CI y Dependabot semanal (#25).
+
 ## [1.1.0] - 2026-10-30
 
 ### Agregado
@@ -18,9 +32,6 @@ Todos los cambios relevantes de Hoenn TCG. Formato basado en [Keep a Changelog](
 ### Seguridad
 - Rate limiting en checkout (10/min), wishlist (30/min) y API admin (60/min), con `429` y `Retry-After` (#13).
 - CI con lint, chequeo de tipos, pruebas, auditoría de dependencias y build (#16).
-
-### Pendiente
-- Migrar a Next.js 16 y Auth.js v5 para resolver avisos de seguridad publicados para Next 14 y next-auth 4.
 
 ## [1.0.0] - 2026-10-30
 
