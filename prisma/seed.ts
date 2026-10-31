@@ -144,7 +144,7 @@ async function main() {
   for (const p of products) {
     await prisma.product.upsert({ where: { slug: p.slug }, update: {}, create: p });
   }
-  console.log(`✔ ${products.length} productos (1 USD = $${USD_TO_CLP} CLP)`);
+  console.info(`✔ ${products.length} productos (1 USD = $${USD_TO_CLP} CLP)`);
 
   const adminEmail = (process.env.SEED_ADMIN_EMAIL || "admin@hoenn.tcg").toLowerCase();
   const adminPass = process.env.SEED_ADMIN_PASSWORD || "CambiaEsta#Clave2026";
@@ -159,7 +159,7 @@ async function main() {
       passwordHash: await bcrypt.hash(adminPass, 12),
     },
   });
-  console.log(`✔ Admin: ${adminEmail}`);
+  console.info(`✔ Admin: ${adminEmail}`);
 
   if (process.env.SEED_DEMO_DATA !== "false" && (await prisma.order.count()) === 0) {
     await seedDemo();
@@ -223,7 +223,7 @@ async function seedDemo() {
       create: { day, count: 60 + rnd(90) },
     });
   }
-  console.log("✔ Datos de demostración (6 clientes y pedidos de los últimos 14 días)");
+  console.info("✔ Datos de demostración (6 clientes y pedidos de los últimos 14 días)");
 }
 
 main()
