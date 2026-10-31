@@ -24,7 +24,7 @@ export function SalesChart({ data }: { data: { day: string; ventas: number }[] }
         <CartesianGrid vertical={false} stroke="rgba(255,255,255,.06)" />
         <XAxis dataKey="day" {...axis} />
         <YAxis {...axis} width={56} tickFormatter={compact} />
-        <Tooltip {...tooltipStyle} formatter={(v: number) => [clp(v), "Ventas"]} cursor={{ stroke: "rgba(255,255,255,.25)" }} />
+        <Tooltip {...tooltipStyle} formatter={(v) => [clp(Number(v ?? 0)), "Ventas"]} cursor={{ stroke: "rgba(255,255,255,.25)" }} />
         <Area type="monotone" dataKey="ventas" stroke="#4C8DFF" strokeWidth={2} fill="url(#fillSales)" activeDot={{ r: 5, stroke: "#0B1120", strokeWidth: 2 }} />
       </AreaChart>
     </ResponsiveContainer>
@@ -38,7 +38,7 @@ export function CategoryChart({ data }: { data: { categoria: string; ventas: num
         <CartesianGrid vertical={false} stroke="rgba(255,255,255,.06)" />
         <XAxis dataKey="categoria" {...axis} />
         <YAxis {...axis} width={56} tickFormatter={compact} />
-        <Tooltip {...tooltipStyle} formatter={(v: number) => [clp(v), "Ventas"]} cursor={{ fill: "rgba(255,255,255,.04)" }} />
+        <Tooltip {...tooltipStyle} formatter={(v) => [clp(Number(v ?? 0)), "Ventas"]} cursor={{ fill: "rgba(255,255,255,.04)" }} />
         <Bar dataKey="ventas" fill="#00C853" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
