@@ -1,16 +1,27 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 
 type Attachment = { filename: string; content: Buffer; contentType: string };
+type Env = Record<string, string | undefined>;
 
-let transporter: nodemailer.Transporter | null = null;
+/** Opciones SMTP seguras: TLS directo en 465 y STARTTLS obligatorio en los demás puertos. */
+export function smtpOptions(env: Env = process.env) {
+  if (!env.SMTP_HOST) return null;
+  const port = Number(env.SMTP_PORT || 587);
+  return {
+    host: env.SMTP_HOST,
+    port,
+    secure: port === 465,
+    requireTLS: port !== 465, // nunca enviar credenciales sin cifrar
+    tls: { minVersion: "TLSv1.2" as const },
+    auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASS } : undefined,
+  };
+}
+
+let transporter: Transporter | null = null;
 function getTransport() {
-  if (!process.env.SMTP_HOST) return null;
-  transporter ??= nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
-  });
+  const opts = smtpOptions();
+  if (!opts) return null;
+  transporter ??= nodemailer.createTransport(opts);
   return transporter;
 }
 
