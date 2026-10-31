@@ -5,21 +5,38 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       DATABASE_URL: file:./ci.db
       NEXTAUTH_SECRET: ci-secret-0123456789abcdef0123456789
       NEXTAUTH_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npx prisma generate
-      - run: npm test
-      - run: npx prisma db push --skip-generate
-      - run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Pruebas
+        run: npm test
+      # Informativa: Next 14 / next-auth 4 tienen avisos que se resuelven migrando a Next 16
+      - name: Auditoría de dependencias
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+      - name: Build
+        run: |
+          npx prisma db push --skip-generate
+          npm run build
