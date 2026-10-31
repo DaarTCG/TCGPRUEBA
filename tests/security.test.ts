@@ -148,3 +148,18 @@ describe("Rate limiting de la API", () => {
     expect(rateGuard(req(), "wishlist")).toBeNull();
   });
 });
+
+import { productUpdateSchema, emailSchema } from "@/lib/validation";
+
+describe("Validación Zod 4", () => {
+  it("normaliza el correo (espacios y mayúsculas)", () => {
+    expect(emailSchema.parse("  Ash@Pallet.CL ")).toBe("ash@pallet.cl");
+  });
+  it("imagen de producto: solo https", () => {
+    expect(productUpdateSchema.safeParse({ imageUrl: "https://images.pokemontcg.io/x.png" }).success).toBe(true);
+    expect(productUpdateSchema.safeParse({ imageUrl: "" }).success).toBe(true);
+    expect(productUpdateSchema.safeParse({ imageUrl: "http://inseguro.cl/x.png" }).success).toBe(false);
+    expect(productUpdateSchema.safeParse({ imageUrl: "javascript:alert(1)" }).success).toBe(false);
+    expect(productUpdateSchema.safeParse({ imageUrl: "data:image/png;base64,AAAA" }).success).toBe(false);
+  });
+});

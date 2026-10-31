@@ -9,15 +9,25 @@ export const passwordSchema = z
   .regex(/[0-9]/, "Debe incluir un número")
   .regex(/[^A-Za-z0-9]/, "Debe incluir un símbolo");
 
+/** Correo normalizado (trim + minúsculas) validado con el formato nativo de Zod 4. */
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email({ error: "Correo inválido" }).max(254));
+
+/** Solo URLs https (bloquea http:, javascript:, data:). */
+export const httpsUrlSchema = z.url({ protocol: /^https$/, error: "La URL debe empezar con https://" }).max(500);
+
 export const registerSchema = z.object({
   name: z.string().trim().min(2, "Nombre muy corto").max(80),
-  email: z.string().trim().toLowerCase().email("Correo inválido").max(254),
+  email: emailSchema,
   password: passwordSchema,
 });
 
 export const sellRequestSchema = z.object({
   fullName: z.string().trim().min(3, "Ingresa tu nombre completo").max(100),
-  email: z.string().trim().toLowerCase().email("Correo inválido").max(254),
+  email: emailSchema,
   phone: z
     .string()
     .trim()
@@ -47,7 +57,7 @@ export const productUpdateSchema = z
     stock: z.number().int().min(0).max(100_000),
     enabled: z.boolean(),
     available: z.boolean(),
-    imageUrl: z.string().url().startsWith("https://").max(500).or(z.literal("")).nullable(),
+    imageUrl: httpsUrlSchema.or(z.literal("")).nullable(),
   })
   .partial();
 
