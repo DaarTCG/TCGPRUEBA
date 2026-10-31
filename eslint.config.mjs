@@ -1,11 +1,12 @@
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
 
-const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
-
-/** ESLint 9 (flat config). */
-const config = [
-  { ignores: [".next/**", "node_modules/**", "next-env.d.ts", "coverage/**"] },
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+/** ESLint 9 (flat config nativa de eslint-config-next 16). */
+export default defineConfig([
+  globalIgnores([".next/**", "node_modules/**", "next-env.d.ts", "coverage/**"]),
+  ...nextVitals,
+  ...nextTs,
   {
     rules: {
       // Variables con _ al inicio se permiten sin usar (p. ej. _req)
@@ -15,6 +16,4 @@ const config = [
       "no-console": ["warn", { allow: ["info", "warn", "error"] }],
     },
   },
-];
-
-export default config;
+]);

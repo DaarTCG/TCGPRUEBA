@@ -9,9 +9,16 @@ export const metadata = { title: "Dashboard admin" };
 
 const CAT: Record<string, string> = { SINGLE: "Singles", SEALED: "Sellados", GRADED: "Graduadas" };
 
-export default async function AdminDashboard() {
-  const since = new Date(Date.now() - 13 * 86400000);
+/** Inicio del período de 14 días (a medianoche) y hora del render para el indicador "en vivo". */
+function dashboardClock() {
+  const now = new Date();
+  const since = new Date(now.getTime() - 13 * 86400000);
   since.setHours(0, 0, 0, 0);
+  return { since, updatedAt: now.toLocaleTimeString("es-CL", { timeZone: "America/Santiago" }) };
+}
+
+export default async function AdminDashboard() {
+  const { since, updatedAt } = dashboardClock();
 
   const [orders, critical, visits, clients, recent, pendingSell] = await Promise.all([
     prisma.order.findMany({ where: { status: { notIn: ["CANCELLED", "PENDING_PAYMENT"] } }, include: { items: { include: { product: { select: { category: true } } } } } }),
@@ -49,7 +56,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <AutoRefresh seconds={30} />
+      <AutoRefresh seconds={30} updatedAt={updatedAt} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Kpi label="Ventas totales" value={formatClp(total)} hint={`${orders.length} pedidos`} accent="border-t-latios" />
